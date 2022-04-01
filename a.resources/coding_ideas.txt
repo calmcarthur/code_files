@@ -1,0 +1,4 @@
+- hangman game
+- date to day of the week program
+- sudoko
+- 

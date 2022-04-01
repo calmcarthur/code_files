@@ -1,0 +1,14 @@
+See https://docs.google.com/document/d/1kIycZM22fM7HH9pWtWg1E4PBLiLCY9bwVRDFw712UEI/edit#
+
+example:
+
+cd Documents/code_repos/7127
+git checkout develop 
+git pull
+git subrepo fetch DT_Libraries/ -b master
+git remote -v -- shows urls
+git remote add dt_lib git@bitbucket.org:deeptrekker/dt_libraries.git
+git subrepo fetch DT_Libraries/ -b master
+git subrepo pull DT_Libraries 
+git subrepo status DT_Libraries/ 
+git subrepo push DT_Libraries
