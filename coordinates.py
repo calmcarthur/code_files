@@ -13,7 +13,7 @@ def GenerateCoords():
 
 def PrintCoords():
     lat, long = GenerateCoords()
-    print(f"Latitude: {lat} | Longitude: {long}")
+    print(f"\nLatitude: {lat} | Longitude: {long}")
 
     return None
 
@@ -22,16 +22,16 @@ def RunGame():
     counter = 0
     inputGiven = ""
 
-    while (1): # inputGiven != "q":
-        # counter += 1
+    while inputGiven != "q":
+        counter += 1
 
         if counter == 1:
             inputGiven = input("Weclome, press enter to generate a pair of random coordinates: ")
-        # else:
-        #     inputGiven = input("Press 'enter' to generate another pair of coordinates, or 'q + enter' to exit: ")
+        else:
+            inputGiven = input("Press 'enter' to generate another pair of coordinates, or 'q + enter' to exit: ")
 
-        # while inputGiven != "q" and inputGiven != "":
-        #     inputGiven = input("Invalid input, press 'enter' to generate a pair of coordinates, or 'q + enter' to exit: ")
+        while inputGiven != "q" and inputGiven != "":
+             inputGiven = input("Invalid input, press 'enter' to generate a pair of coordinates, or 'q + enter' to exit: ")
         
         if inputGiven == "q":
             continue
