@@ -1,4 +1,4 @@
-import time
+# unfinished
 
 daybool = False
 monthbool = False
