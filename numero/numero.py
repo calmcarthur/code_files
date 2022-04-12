@@ -4,7 +4,6 @@ import random
 import os
 import curses
 
-from numpy import tile
 
 # set operating system for program
 windowsOrLinux = ''
