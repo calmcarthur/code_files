@@ -1,10 +1,14 @@
 # file to test stuff
 
-file = open("../../output.txt", 'rt')
-list1 = []
+numPrimes = 'hello'
 
-for i in file:
-    list1.append(i)
+def TryStuff():
+    while isinstance(numPrimes, str):
+        try:
+            numPrimes = int(numPrimes.strip())
+            testfor0 = 4/numPrimes
 
-print(len(list1))
-print(len(set(list1)))
+        except:
+            numPrimes = input('That is not a valid input, try again: ')
+    
+    return None
