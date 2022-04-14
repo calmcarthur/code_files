@@ -1,6 +1,6 @@
 #!/bin/bash
-# script to run google test 'x' amount of times and report pass or fail
-# to tailor to non-googletest tests, modify the grep regex in calculate_score
+# script to run google test 'x' amount of times and report pass/fail count
+# to tailor to non-googletest tests, modify the grep regex in the calculate_score function
 
 take_input () {
 
@@ -10,7 +10,7 @@ take_input () {
 	while [ "$START_BOOL" -eq 0 ]
 	do
 
-	    printf "Enter the path to the testfile from your home directory (ex. Documents/code_repos/7127/build/bin/test_o2_sensor): "
+	    printf "Enter the path to the test binary from your home directory (ex. Documents/code_repos/7127/build/bin/test_o2_sensor): "
 	    read -r REPO_NAME
 	    printf "Enter the number of times you want to run the test: "
 	    read -r NUMBER_TEST
@@ -24,7 +24,7 @@ take_input () {
 				START_BOOL=1
 
 			else
-			echo "Invalid path, please try again."
+				echo "Invalid path, please try again."
 	    fi
 
 	done
@@ -39,12 +39,12 @@ run_tests () {
 	# delete OUTPUT_FILE if exists and set OUTPUT_FILE variable
 	if [ "$OUTPUT_FILE" = "q" ];
 	    then
-		OUTPUT_FILE=".${OUTPUT_FILE}.txt"
-		rm $OUTPUT_FILE 2> /dev/null || true
+			OUTPUT_FILE=".${OUTPUT_FILE}.txt"
+			rm $OUTPUT_FILE 2> /dev/null || true
 
 	    else
-		OUTPUT_FILE="${OUTPUT_FILE}.txt"
-		rm $OUTPUT_FILE 2> /dev/null || true
+			OUTPUT_FILE="${OUTPUT_FILE}.txt"
+			rm $OUTPUT_FILE 2> /dev/null || true
 	fi
 
 	# run tests 'x' times
@@ -79,15 +79,13 @@ calculate_score () {
 
 	# PASS TALLY
 	while read -r PASS_LINE; do
-		echo "PASS ${PASS_LINE}"
 		let "PASS_COUNTER=PASS_COUNTER+${PASS_LINE}"
-	done < <(grep "\[  PASSED  \]" ${HOME}/Dropbox/code_files/output.txt | grep "test" | grep -o '[[:digit:]]*')
+	done < <(grep "\[  PASSED  \]" ${PWD}/${OUTPUT_FILE} | grep "test" | grep -o '[[:digit:]]*')
 
 	# FAIL TALLY
 	while read -r FAIL_LINE; do
-		echo "FAIL ${FAIL_LINE}"
 		let "FAIL_COUNTER=FAIL_COUNTER+${FAIL_LINE}"
-	done < <(grep "\[  FAILED  \]" ${HOME}/Dropbox/code_files/output.txt | grep "test" | grep -o '[[:digit:]]*')
+	done < <(grep "\[  FAILED  \]" ${PWD}/${OUTPUT_FILE} | grep "test" | grep -o '[[:digit:]]*')
 
 	# print passes and fails
 	echo "PASSES: ${PASS_COUNTER} | FAILS: ${FAIL_COUNTER}"
@@ -99,7 +97,7 @@ delete_file () {
 	# if specified, delete output file
 	if [ "$OUTPUT_FILE" = ".q.txt" ];
 	    then
-		rm $OUTPUT_FILE 2> /dev/null || true
+			rm $OUTPUT_FILE 2> /dev/null || true
 
 	    else
 		:
