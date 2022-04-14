@@ -1,96 +1,112 @@
 #!/bin/bash
-# script to run tests 'x' amount of times and report pass or fail based on hardcoded conditionals
+# script to run google test 'x' amount of times and report pass or fail
+# to tailor to non-googletest tests, modify the grep regex in calculate_score
 
-MASTER_COUNTER=0
-PASS_COUNTER=0
-FAIL_COUNTER=0
-END_BOOL=0
-START_BOOL=0
+take_input () {
 
-while [ "$START_BOOL" -eq 0 ]
-do
+	START_BOOL=0
 
-    printf "Enter the path to the repo from your home directory (ex. Documents/code_repos/7127): "
-    read -r REPO_NAME
-    printf "Enter the testfile name (ex. test_o2_sensor): "
-    read -r TEST_FILE
-    printf "Enter the number of times you want to run the test: "
-    read -r NUMBER_TEST
-    printf "Enter 'q' for no output file. If output is desired, enter chosen file name (ex. output_file): "
-    read -r OUTPUT_FILE
+	# take user conditions and validate given path
+	while [ "$START_BOOL" -eq 0 ]
+	do
 
-    PATH_TO_FILE="${HOME}/${REPO_NAME}/build/bin/${TEST_FILE}"
+	    printf "Enter the path to the testfile from your home directory (ex. Documents/code_repos/7127/build/bin/test_o2_sensor): "
+	    read -r REPO_NAME
+	    printf "Enter the number of times you want to run the test: "
+	    read -r NUMBER_TEST
+	    printf "Enter 'q' for no output file. If output is desired, enter chosen file name (ex. output_file): "
+	    read -r OUTPUT_FILE
 
-    if [ -f "$PATH_TO_FILE" ];
-        then
-            START_BOOL=1
+	    PATH_TO_FILE="${HOME}/${REPO_NAME}"
 
-    else
-        echo "Invalid path, please try again."
+	    if [ -f "$PATH_TO_FILE" ];
+			then
+				START_BOOL=1
 
-    fi
+			else
+			echo "Invalid path, please try again."
+	    fi
 
-done
+	done
+	
+}
 
-if [ "$OUTPUT_FILE" = "q" ];
-    then
-        OUTPUT_FILE=".${OUTPUT_FILE}.txt"
-        rm $OUTPUT_FILE 2> /dev/null || true
-    else
-        OUTPUT_FILE="${OUTPUT_FILE}.txt"
-        rm $OUTPUT_FILE 2> /dev/null || true
-fi
+run_tests () {
 
-LINE_TO_PARSE=7
+	END_BOOL=0
+	MASTER_COUNTER=0
 
-while [ $END_BOOL -eq 0 ];
-do
+	# delete OUTPUT_FILE if exists and set OUTPUT_FILE variable
+	if [ "$OUTPUT_FILE" = "q" ];
+	    then
+		OUTPUT_FILE=".${OUTPUT_FILE}.txt"
+		rm $OUTPUT_FILE 2> /dev/null || true
 
-    $PATH_TO_FILE >> $OUTPUT_FILE
+	    else
+		OUTPUT_FILE="${OUTPUT_FILE}.txt"
+		rm $OUTPUT_FILE 2> /dev/null || true
+	fi
 
-    let MASTER_COUNTER++
-    echo "Test ${MASTER_COUNTER} Running..."
+	# run tests 'x' times
+	while [ $END_BOOL -eq 0 ];
+	do
 
-    # ---------------------------------------------------
-    # HARDCODED CONDITIONAL -- WILL NOT WORK FOR ALL TESTS
-    # TO TAILOR TO DIFFERENT TESTS:
-    # CHANGE INITIAL LINE (LINE_TO_PARSE=7), PASS KEY (OK), AND LINE INCREMENTS (+ 13, + 40)
-    
-    LINE=$(sed "${LINE_TO_PARSE}q;d" ${OUTPUT_FILE})
+	    $PATH_TO_FILE >> $OUTPUT_FILE
 
-    if [[ "$LINE" == *"OK"* ]];
+	    let MASTER_COUNTER++
+	    echo "Test ${MASTER_COUNTER} Running..."
 
-        then 
-            # PASS
-            let "PASS_COUNTER=PASS_COUNTER+1"
-            let "LINE_TO_PARSE = LINE_TO_PARSE + 13"
-        
-        else
-            # FAIL
-            let "FAIL_COUNTER=FAIL_COUNTER+1"
-            let "LINE_TO_PARSE = LINE_TO_PARSE + 40"
-    
-    fi
-    
-    # ---------------------------------------------------
 
-    if [ "$MASTER_COUNTER" -eq "$NUMBER_TEST" ];
+	    if [ "$MASTER_COUNTER" -eq "$NUMBER_TEST" ]
+			then
+				END_BOOL=1
 
-        then
-            END_BOOL=1
+			else
+				continue
+	    fi
 
-        else
-            continue
-    
-    fi
+	done
+	
+	calculate_score
+	delete_file
 
-done
+}
 
-if [ "$OUTPUT_FILE" = ".q.txt" ];
-    then
-        rm $OUTPUT_FILE 2> /dev/null || true
-    else
-        :
-fi
+calculate_score () {
 
-echo "PASSES: ${PASS_COUNTER} | FAILS: ${FAIL_COUNTER}"
+	PASS_COUNTER=0
+	FAIL_COUNTER=0
+
+	# PASS TALLY
+	while read -r PASS_LINE; do
+		echo "PASS ${PASS_LINE}"
+		let "PASS_COUNTER=PASS_COUNTER+${PASS_LINE}"
+	done < <(grep "\[  PASSED  \]" ${HOME}/Dropbox/code_files/output.txt | grep "test" | grep -o '[[:digit:]]*')
+
+	# FAIL TALLY
+	while read -r FAIL_LINE; do
+		echo "FAIL ${FAIL_LINE}"
+		let "FAIL_COUNTER=FAIL_COUNTER+${FAIL_LINE}"
+	done < <(grep "\[  FAILED  \]" ${HOME}/Dropbox/code_files/output.txt | grep "test" | grep -o '[[:digit:]]*')
+
+	# print passes and fails
+	echo "PASSES: ${PASS_COUNTER} | FAILS: ${FAIL_COUNTER}"
+
+}
+
+delete_file () {
+
+	# if specified, delete output file
+	if [ "$OUTPUT_FILE" = ".q.txt" ];
+	    then
+		rm $OUTPUT_FILE 2> /dev/null || true
+
+	    else
+		:
+	fi
+
+}
+
+# main
+take_input
+run_tests
