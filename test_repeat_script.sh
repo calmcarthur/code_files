@@ -51,11 +51,10 @@ run_tests () {
 	while [ $END_BOOL -eq 0 ];
 	do
 
-	    $PATH_TO_FILE >> $OUTPUT_FILE
-
 	    let MASTER_COUNTER++
 	    echo "Test ${MASTER_COUNTER} Running..."
 
+	    $PATH_TO_FILE >> $OUTPUT_FILE
 
 	    if [ "$MASTER_COUNTER" -eq "$NUMBER_TEST" ]
 			then
