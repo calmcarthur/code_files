@@ -26,6 +26,15 @@ def ClearConsole():
     return None
 
 
+def WaitToStart(firstLetter):
+    
+    print(firstLetter)
+
+    while(True):
+        if keyboard.is_pressed(firstLetter):
+            break
+
+
 def TestSetup():
 
     okInput = False
@@ -72,9 +81,12 @@ def TypingMain():
     numOfSecs, masterWordList = TestSetup()
     timeEnd = time.time() + numOfSecs
 
-    # while time.time() < timeEnd:
+    counter = 0
 
-    print(*masterWordList)
+    while time.time() < timeEnd:
+        counter += 1
+        time.sleep(1)
+        print(masterWordList[counter])
    
     return None
 
@@ -84,15 +96,6 @@ def RunTest():
     TypingMain()
 
     return None
-
-
-def WaitToStart(firstLetter):
-
-    print(firstLetter)
-
-    while(True):
-        if keyboard.is_pressed(firstLetter):
-            break
 
 
 if __name__ == "__main__":
