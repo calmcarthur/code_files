@@ -1,0 +1,234 @@
+#include <Servo.h>
+
+Servo gripper; 
+Servo ax1;
+Servo ax2;
+
+// angles
+const float l1angle1 = 7 + 45;
+const float l1angle2 = 100;
+const float l1angle1_int = -45 + 45;
+const float l1angle2_int = 100;
+
+const float l2angle1 = 32 + 45;
+const float l2angle2 = 129;
+const float l2angle1_int = -40 + 45;
+const float l2angle2_int = 100;
+
+const float l3angle1 = 68 + 45;
+const float l3angle2 = 158;
+const float l3angle1_int = -45 + 45;
+const float l3angle2_int = 115;
+
+const float homeangle1 = -30 + 45;
+const float homeangle2 = 80;
+
+// for MoveTopos
+float angle1;
+float angle2;
+
+// gripper
+int gr_open = 110;
+int gr_close = 0;
+
+// communication variables
+// all start at location 1
+int v = 1;
+int current = 1;
+int next = 1;
+
+// This takes starting and ending angles, and moves gripper from start to end.
+void moveTopos(float ax1s, float ax2s, float ax1e, float ax2e) {
+  /*
+  This function taskes the starting and ending angles for both axes and
+  divides them into an even number of steps. This ensures that the movement
+  from both motors occurs simultaneously. It also reduces the speed of
+  movement to help protect the mechanism. This is a workable but sub-optimal
+  way of moving the mechanism.
+
+  ax1s -> Axis 1 Start Position
+  ax1e -> Axis 1 End Position
+  ax2s -> Axis 2 Start Position
+  ax2e -> Axis 2 End Position
+  */
+  float num_steps_1 = ax1e - ax1s;
+  float num_steps_2 = ax2e - ax2s;
+  float num_steps = 0;
+
+  if (abs(num_steps_1) >= abs(num_steps_2)){
+    num_steps = abs(num_steps_1);
+  }
+  else {
+    num_steps = abs(num_steps_2);
+  }
+  float inc1 = num_steps_1 / num_steps;
+  float inc2 = num_steps_2 / num_steps;
+  float stp = 0;
+  for(stp = 0; stp<=num_steps; stp += 1){
+    angle1 += inc1;
+    ax1.write(angle1);
+    angle2 += inc2;
+    ax2.write(angle2);
+    delay(25);
+  }
+  angle1 = ax1e;
+  ax1.write(angle1);
+  angle2 = ax2e;
+  ax2.write(angle2);
+  delay(25);
+}
+void grip() {
+  gripper.write(gr_close);
+}
+void ungrip() {
+  gripper.write(gr_open);
+}
+int binaryToInt(int value1, int value2) {
+    
+  if (value1 == 0 && value2 == 1) {
+    return 1;
+  }
+  if (value1 == 1 && value2 == 0) {
+    return 2;
+  }
+  if (value1 == 1 && value2 == 1) {
+    return 3;
+  }
+  return 0;
+}
+void goToCurrent(int current) {
+  if (current == 1) {
+    moveTopos(homeangle1, homeangle2, l1angle1_int, l1angle2_int); // 1 intemediary
+    delay(2000);
+    moveTopos(l1angle1_int, l1angle2_int, l1angle1, l1angle2); // 1 location
+    delay(2000);
+    grip(); // pickup
+    delay(2000);
+    moveTopos(l1angle1, l1angle2, homeangle1, homeangle2); // home
+    delay(2000);
+  }
+  if (current == 2) {
+    moveTopos(homeangle1, homeangle2, l2angle1_int, l2angle2_int); // 2 intemediary
+    delay(2000);
+    moveTopos(l2angle1_int, l2angle2_int, l2angle1, l2angle2); // 2 location
+    delay(2000);
+    grip(); // pickup
+    delay(2000);
+    moveTopos(l2angle1, l2angle2, homeangle1, homeangle2); // home
+    delay(2000);    
+  }
+  if (current == 3) {
+    moveTopos(homeangle1, homeangle2, l3angle1_int, l3angle2_int); // 3 intemediary
+    delay(2000);
+    moveTopos(l3angle1_int, l3angle2_int, l3angle1, l3angle2); // 3 location
+    delay(2000);
+    grip(); // pickup
+    delay(2000);
+    moveTopos(l3angle1, l3angle2, homeangle1, homeangle2); // home
+    delay(2000);    
+  }
+}
+
+void setup() {
+  Serial.begin(9600);
+  
+  // servo pins
+  ax1.attach(10);
+  ax2.attach(11);
+  gripper.attach(12); 
+
+  // setting the axes to the home position
+  angle1 = homeangle1;
+  angle2 = homeangle2;
+
+  // move motors to home
+  ax1.write(homeangle1);
+  ax2.write(homeangle2);
+
+  // ensure gripper is open
+  gripper.write(gr_open);
+
+  // set communication bus pins
+  pinMode(2, INPUT);
+  pinMode(3, INPUT);
+  pinMode(4, OUTPUT);
+  pinMode(5, OUTPUT);
+
+  // payload starts at location 1
+  digitalWrite(4, LOW);
+  digitalWrite(5, HIGH);
+}
+
+void loop() {
+  // do nothing until we get input
+  while (Serial.available() != 0) {}
+  
+  // set target
+  next = Serial.parseInt();
+  Serial.print("Target: ");
+  Serial.print(next);
+
+  // where is the payload?
+  // check if the other board has changed the location
+  if (v != binaryToInt(digitalRead(2), digitalRead(3))) {
+    // set current location
+    current = binaryToInt(digitalRead(2), digitalRead(3));
+  } else {
+    // do nothing, ie. use the current location we have
+    current = current;
+  }
+
+  // grab payload and bring it to home
+  goToCurrent(current);
+
+  // move payload from home to next location
+  if (next == 1) {
+    moveTopos(homeangle1, homeangle2, l1angle1, l1angle2); // move to 1
+    delay(2000);
+    ungrip(); // dropoff
+    delay(2000);
+    moveTopos(l1angle1, l1angle2, l1angle1_int, l1angle2_int); // 1 location intemediary
+    delay(2000);
+    moveTopos(l1angle1_int, l1angle2_int, homeangle1, homeangle2); // home
+    delay(2000);
+
+    // set pins to new location
+    digitalWrite(4, LOW);
+    digitalWrite(5, HIGH);
+  }
+  if (next == 2) {
+    moveTopos(homeangle1, homeangle2, l2angle1, l2angle2); // move to 2
+    delay(2000);
+    ungrip(); // dropoff
+    delay(2000);
+    moveTopos(l2angle1, l2angle2, l2angle1_int, l2angle2_int); // 2 location intemediary
+    delay(2000);
+    moveTopos(l2angle1_int, l2angle2_int, homeangle1, homeangle2); // home
+    delay(2000);
+
+    // set pins to new location
+    digitalWrite(4, HIGH);
+    digitalWrite(5, LOW);
+  }
+  if (next == 3) {
+    moveTopos(homeangle1, homeangle2, l3angle1, l3angle2); // move to 3
+    delay(2000);
+    ungrip(); // dropoff
+    delay(2000);
+    moveTopos(l3angle1, l3angle2, l3angle1_int, l3angle2_int); // 3 location intemediary
+    delay(2000);
+    moveTopos(l3angle1_int, l3angle2_int, homeangle1, homeangle2); // home
+    delay(2000);
+
+    // set pins to new location
+    digitalWrite(4, HIGH);
+    digitalWrite(5, HIGH);
+  }
+
+  // set our new current location
+  current = next;
+  
+  // get other motors location for reference if it changes
+  v = binaryToInt(digitalRead(2), digitalRead(3));
+
+}
