@@ -14,8 +14,7 @@ DELTA_TIME = 0.1
 HEIGHT_BOTTOM = 0 # m
 HEIGHT_TOP = 8/100 # m
 V1_INITIAL = 0 # m/s
-V2_INITIAL = 0.1 # m/s
-MAX_ITERATIONS = 1000
+V2_INITIAL = 0.01 # m/s
 
 # INPUTS
 TUBE_LENGTHS = [0.2,0.6,0.2,0.4]
@@ -34,7 +33,7 @@ def calculateF(re):
         return 64/re
     elif 3000 < re:
         try:
-            return np.sqrt(1/(-1.8*np.log10(((EPSILON/DIAMETER_TUBE)**1.11)+(6.9/re))))
+            return 0.25 / (np.log10((EPSILON / DIAMETER_TUBE) / 3.7 + 5.74 / re**0.9) ** 2)
         except:
             print("Squaring Negative Number: ", re)
             exit()
@@ -47,7 +46,7 @@ def calculateV2(v2, h, l):
     tol = 1
     counter = 0
 
-    while tol >= TOLERANCE and counter < MAX_ITERATIONS:
+    while tol >= TOLERANCE:
         counter += 1
 
         re = calculateRe(v2)
@@ -71,11 +70,21 @@ def calculateV2(v2, h, l):
             print("V2 iterations not converging: ", v2_new)
             return None
     
-    if counter == MAX_ITERATIONS:
-        print("Max iterations reached without convergence.")
-        return None
-    
     return v2
+
+def printTimes(times):
+    counter = 0
+    for x in times:
+        print("Length: ", TUBE_LENGTHS[counter], ", T-JOINT: ", T_JOINT[counter] ,", Time: " , formatTime(x))
+
+def formatTime(seconds):
+    minutes = int(seconds // 60)
+    remaining_seconds = seconds % 60
+    if minutes > 0:
+        return f"{minutes} minute(s) and {remaining_seconds:.2f} second(s)"
+    else:
+        return f"{remaining_seconds:.2f} second(s)"   
+
 
 def main():
 
@@ -104,5 +113,7 @@ def main():
 
 if __name__ == "__main__":
     times = main()
-    if times:
-        for x in times: print(x)
+    if times is not None:
+        printTimes(times)
+    else:
+        print("Calculation failed. No times to print.")
