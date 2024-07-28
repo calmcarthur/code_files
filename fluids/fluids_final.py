@@ -33,14 +33,17 @@ def calculateF(re):
     return 64/re if re <= 2300 else 0.25 / (np.log10((EPSILON / DIAMETER_TUBE) / 3.7 + 5.74 / re**0.9) ** 2)
 
 # Calculation of v2.
-# K and l change depending on if there is a t-joint or not.
+# K and l_total change depending on if there is a t-joint or not.
 def calculateV2(v2, h, l, tjoint):
 
     re = calculateRe(v2)
     f = calculateF(re)
     l_total = l if tjoint == 0 else l + 0.04
 
-    z1 = h + 0.02 + (l_total/150)
+    # Leep l because overall height doesn't change significantly with t-joint.
+    z1 = h + 0.02 + (l/150)
+
+    # Calculation.
     numerator = 2 * GRAVITY * z1
     term1 = 1
     term2 = -((AREA_TUBE/AREA_BUCKET)**2)
@@ -62,7 +65,7 @@ def formatTime(seconds):
     minutes = int(seconds // 60)
     remaining_seconds = seconds % 60
     if minutes > 0:
-        return f"{minutes} minute(s) and {remaining_seconds:.2f} second(s)"
+        return f"{minutes} minutes and {remaining_seconds:.2f} seconds"
     else:
         return f"{remaining_seconds:.2f} second(s)"   
 
@@ -105,7 +108,7 @@ def main():
 
     for l, tjoint in zip(TUBE_LENGTHS, T_JOINTS):
         time = drainTime(l, tjoint)
-        print(formatTime(time))
+        print("Length: ", l, "m, T-Joint: ", "No" if tjoint == 0 else "Yes" ,", Time: ", formatTime(time), sep='')
 
 if __name__ == "__main__":
 
