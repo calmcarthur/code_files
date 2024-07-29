@@ -18,7 +18,7 @@ V1_INITIAL = 0  # m/s
 V2_INITIAL = 0.01  # m/s
 
 # INPUTS
-TUBE_LENGTHS = [0.2,0.3,0.2,0.4]
+TUBE_LENGTHS = [0.2,0.6,0.2,0.4]
 T_JOINTS = [0,0,1,1]
 
 # Calculating Reynolds number.
