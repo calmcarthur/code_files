@@ -1,0 +1,4 @@
+Length: 0.2m, T-Joint: No, Time: 3 minutes and 24.93 seconds
+Length: 0.6m, T-Joint: No, Time: 4 minutes and 33.82 seconds
+Length: 0.2m, T-Joint: Yes, Time: 2 minutes and 2.01 seconds
+Length: 0.4m, T-Joint: Yes, Time: 2 minutes and 17.68 seconds
